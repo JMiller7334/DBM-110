@@ -23,12 +23,10 @@ DROP TRIGGER IF EXISTS formatEntry;
 CREATE TRIGGER formatEntry AFTER INSERT ON users
 BEGIN
 
-    UPDATE users 
-        SET email = REPLACE(email, ' ', ''),
-        email = REPLACE(email, email, LOWER(email));
+    UPDATE users SET email = REPLACE(email, ' ', '');
+    UPDATE users SET email = REPLACE(email, email, LOWER(email));
         
     UPDATE users SET phone = REPLACE(REPLACE(phone, ' ', ''),'-', '');
-    
 
     UPDATE users SET phone = REPLACE(phone, phone, 'invalid('||phone||')') 
             WHERE phone NOT LIKE 'invalid%' AND CAST(phone AS INTEGER) IS NOT phone OR
