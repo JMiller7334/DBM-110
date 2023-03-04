@@ -1,0 +1,44 @@
+/*MODULE 7: TIME, DATES
+A database holding events, includes a trigger that auto increments the
+attendee int for each event when a user as added to the user table.
+Also will auto remove user data entries if now event for their entry exists.
+*/
+
+DROP TABLE IF EXISTS events;
+CREATE TABLE events(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    eventName STRING,
+    attendees INTEGER DEFAULT 0,
+    eventDate STRING NOT NULL);
+
+DROP TABLE IF EXISTS users;    
+CREATE TABLE users(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name STRING NOT NULL,
+    event STRING NOT NULL
+);
+
+DROP TRIGGER IF EXISTS updateEvents;
+CREATE TRIGGER updateEvents AFTER INSERT ON users
+BEGIN
+    UPDATE events SET attendees = attendees + 1 WHERE eventName = (
+        SELECT event FROM users WHERE rowID = last_insert_rowid()
+    );
+    
+    DELETE FROM users WHERE event != (
+        SELECT eventName FROM events);
+END;
+
+INSERT INTO events(eventName, eventDate)
+    VALUES
+    ("Spring Tournament", DATE('now')),
+    ("Fall Tournament", DATE('now', '+7 months')),
+    ("Spring Seminar", DATE('now'));
+
+INSERT INTO users (name, event)
+    VALUES( 'Jacob', 'Spring Tournament'
+    );
+    
+SELECT * FROM events;
+SELECT * FROM users;
+SELECT * FROM events WHERE strftime('%m', eventDate) < '04'
