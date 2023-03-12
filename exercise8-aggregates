@@ -1,0 +1,71 @@
+/*MODULE 8 - AGGREGATES
+SQL exercise on using aggregates to sorta and value from 2 different
+tables. This uses a exam_results table and students to get values of 
+data that relate between the two tables using aggregates and JOINS.*/
+
+DROP TABLE IF EXISTS exam_results;
+CREATE TABLE exam_results(
+    student_id NOT NULL,
+    points INTEGER NOT NULL
+);
+
+DROP TABLE IF EXISTS students;
+CREATE TABLE students(
+    student_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    first STRING NOT NULL,
+    last STRING NOT NULL,
+    gender STRING NOT NULL,
+    class STRING NOT NULL,
+    foreign_student BOOLEAN NOT NULL
+);
+
+DROP TRIGGER IF EXISTS generate_exam_scores;
+CREATE TRIGGER generate_exam_scores AFTER INSERT ON students
+BEGIN
+    INSERT INTO exam_results(student_id, points) 
+    VALUES(last_insert_rowId(), abs(random()/99999999000000000));
+END;
+
+INSERT INTO students (first, last, gender, class, foreign_student)
+    VALUES('jacob', 'miller', 'male', 'B', false),
+    ('nicholas', 'miller', 'male', 'B', false),
+    ('kana', 'kuromiya', 'female', 'B', true),
+    ('derek', 'feazel', 'male', 'B', false),
+
+    ('ani', 'cazares', 'female', 'A', false),
+    ('emily', 'stone', 'female', 'A', false),
+    ('cliff', 'benz', 'male', 'A', true);
+
+
+--COMMANDS--    
+SELECT * FROM students;
+SELECT * FROM exam_results;
+
+SELECT COUNT(DISTINCT last) FROM students WHERE foreign_student = TRUE;
+SELECT COUNT(class) FROM students WHERE class = 'A';
+SELECT MAX(points) FROM exam_results;
+
+
+--JOINS--
+SELECT * FROM students AS _students
+    JOIN exam_results AS _results
+    ON _students.student_id = _results.student_id;
+    
+SELECT * FROM students AS _students
+    JOIN exam_results AS _results
+    ON _students.student_id = _results.student_id
+    WHERE foreign_student = TRUE;
+    --WHERE gender = 'female' ORDER BY points DESC;
+    
+SELECT * FROM students AS _students
+    JOIN exam_results AS _results
+    ON _students.student_id = _results.student_id
+    GROUP BY _students.last
+    HAVING points > 70;
+    
+SELECT SUM(points) FROM exam_results AS _results
+    JOIN students AS _students
+    ON _students.student_id = _results.student_id
+    WHERE foreign_student = FALSE;
+    --WHERE class = 'B';
+    --WHERE gender = 'female' ORDER BY points DESC;
