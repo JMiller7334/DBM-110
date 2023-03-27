@@ -1,52 +1,73 @@
-/*MODULE 5: EXERCISE STRING MANIPULATION
-A short exercise that takes user data inputs and corrects them.
-This keeps the formatting in the database conisistent
-THIS IS AN UPDATE ON MODULE 3: EXERCISES.*/
+/*EXERCISE 10: Triggers
+While I've touched on triggered earlier, I was working ahead. This the college assignment regarding triggers.
+*/
 
--- EXERCISE 5 --
--- CREATE TABLE --
-DROP TABLE IF EXISTS users;
-CREATE TABLE users(
+DROP TABLE IF EXISTS reservations;
+CREATE TABLE reservations(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    username TEXT,
-    email TEXT NOT NULL,
-    phone INTEGER DEFAULT 'notEntered');
+    phone STRING NOT NULL,
+    datePlaced STRING NOT NULL,
+    stayEnd STRING NOT NULL,
+    stayStart STRING NOT NULL
+);
 
--- CREATE TRIGGERS --
+DROP TABLE IF EXISTS customers;
+CREATE TABLE customers(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    firstname STRING NOT NULL,
+    lastname STRING NOT NULL,
+    phone STRING NOT NULL
+);
+
 DROP TRIGGER IF EXISTS formatEntry;
-CREATE TRIGGER formatEntry AFTER INSERT ON users
+CREATE TRIGGER formatEntry AFTER INSERT ON customers
 BEGIN
-
-    UPDATE users 
-        SET email = REPLACE(email, ' ', ''),
-        email = REPLACE(email, email, LOWER(email));
-        
-    UPDATE users SET phone = REPLACE(REPLACE(phone, ' ', ''),'-', '');
-    UPDATE users SET phone = REPLACE(phone, phone, 'invalid('||phone||')') 
-            WHERE LENGTH(phone)!=10 AND phone NOT LIKE 'invalid%'; 
-
+    UPDATE customers SET phone = REPLACE(REPLACE(phone, ' ', ''),'-', '');
+    UPDATE customers SET phone = REPLACE(phone, phone, 'invalid('||phone||')') 
+            WHERE phone NOT LIKE 'invalid%' AND CAST(phone AS INTEGER) IS NOT phone OR
+            LENGTH(phone) !=10 AND phone NOT LIKE 'invalid%'; 
     -- This deletes entry if duplicate --
-    DELETE FROM users WHERE rowId NOT IN (
-        SELECT min(rowId) FROM users 
-        GROUP BY email);
-        
-    /*DELETE FROM users WHERE rowid >(
-        SELECT MIN(rowid) FROM users AS found
-        WHERE users.email = found.email);*/
+    DELETE FROM customers WHERE rowId NOT IN (
+        SELECT min(rowId) FROM customers 
+        GROUP BY phone);
 END;
+DROP TRIGGER IF EXISTS formatReservations;
+CREATE TRIGGER formatReservations AFTER INSERT ON reservations
+BEGIN
+    UPDATE reservations SET phone = REPLACE(REPLACE(phone, ' ', ''),'-', '');
+    UPDATE reservations SET phone = REPLACE(phone, phone, 'invalid('||phone||')') 
+            WHERE phone NOT LIKE 'invalid%' AND CAST(phone AS INTEGER) IS NOT phone OR
+            LENGTH(phone) !=10 AND phone NOT LIKE 'invalid%'; 
+    -- This deletes entry if duplicate --
+    DELETE FROM reservations WHERE rowid >(
+        SELECT MIN(rowid) FROM reservations AS found
+        WHERE reservations.phone = found.phone AND reservations.stayStart = found.stayStart OR
+        reservations.phone = found.phone AND reservations.stayEnd = found.stayEnd);
+END;
+
+
+SELECT * FROM reservations
+    JOIN customers ON reservations.phone = customers.phone;
     
--- COMMAND --
-INSERT INTO users(username, email, phone) 
-    VALUES
-    ('jmiller', 'JmiLler@students.mchenry. edu', '815 3441 446'),
-    ('emilyStone05', 'estone7571@students.mchenry.edu', '20'),
-    ('kanaKuromiya', 'adrenalineJunkie0559@gmail.com', '815-728-9989');  
 
-INSERT INTO users(email)
-    VALUES
-    ('not DUP'),
-    ('someone @hotmail.com'),
-    ('someone@hotmail.com');
+SELECT * FROM reservations;
+SELECT * FROM customers;
 
-SELECT * FROM users;
+BEGIN TRANSACTION;
+
+    INSERT INTO customers(firstname, lastname, phone)
+        VALUES(
+        'jacob', 'miller', '815-344-1446'),
+        ('chloe', 'skinner', '8026788894'),
+        ('jake', 'miller', '8153441446'),
+        ('jacob', 'miller', '815-344-1446');
+    
+    INSERT INTO reservations(phone, datePlaced, stayEnd, stayStart)
+        VALUES(
+        '815-344-1446', DATE('now'), DATE('now', '+1 day'), DATE('now', '+6 day')),
+        ('8026788894', DATE('now'), DATE('now', '+1 day'), DATE('now', '+6 day')),
+        ('815-344-1446', DATE('now'), DATE('now', '+1 day'), DATE('now', '+6 day')),
+        ('815-344-1446', DATE('now'), DATE('now', '+13 day'), DATE('now', '+68 day'));
+    
+END TRANSACTION;
 
