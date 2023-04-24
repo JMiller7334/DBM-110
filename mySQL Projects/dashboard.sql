@@ -5,7 +5,6 @@ PROJECT GOALS:
 create code the runs within mySQL & mySQLWorkBench.
 Learn new syntax for SQL.
 */
-
 -- CREATE TABLES --
 DROP TABLE IF EXISTS customers;
 CREATE TABLE customers(
@@ -15,19 +14,19 @@ CREATE TABLE customers(
     address VARCHAR(255) NOT NULL,
     phone VARCHAR(255) NOT NULL,
     email VARCHAR(255) DEFAULT 'notEntered',
-    type VARCHAR(255) NOT NULL
+    customer_type VARCHAR(255) NOT NULL
 );
 DROP TABLE IF EXISTS usage_data;
 CREATE TABLE usage_data(
     id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL,
-    customerId INTEGER NOT NULL,
+    customerId INTEGER(255) NOT NULL,
     usage_month VARCHAR(255) NOT NULL,
     customer_usage DOUBLE NOT NULL
 );
 
 -- CREATE TRIGGERS --
-/* NOTE: Delimiter is set as $$ means we are using // to indicate the end of the statement, since this
-trigger uses multiple ;s already requited the delimiter must be set to $$ to indicate the finish of the 
+/* NOTE: Delimiter is set as // means we are using // to indicate the end of the statement, since this
+trigger uses multiple ;s already required - the delimiter must be set to // to indicate the finish of the 
 trigger and should be reverted back to ; after the func/trigger/etc is finished*/
 
 DROP TRIGGER IF EXISTS formatEntry;
@@ -58,3 +57,17 @@ BEGIN
     SET NEW.customer_usage = REPLACE(NEW.customer_usage, NEW.customer_usage, CAST(NEW.customer_usage AS DOUBLE));
 END//
 DELIMITER ;
+
+
+-- INSERT AND COMMANDS --
+INSERT INTO customers(firstName, lastName, address, phone, email, customer_type)
+    VALUES
+    ('jacob', 'Miller', '1813 Grandview Dr.', '815-344 1446', 'Jmiller@student.com', 'standard');
+    
+INSERT INTO usage_data(customerId, usage_month, customer_usage) 
+    VALUES
+    (2, 'march', 10045);
+    
+    
+SELECT * FROM customers;
+SELECT * FROM usage_data;
